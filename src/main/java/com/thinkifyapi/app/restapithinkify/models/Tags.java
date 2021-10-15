@@ -1,7 +1,11 @@
 package com.thinkifyapi.app.restapithinkify.models;
+import java.util.Date;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Document(collection = "tags")
 public class Tags {
@@ -11,7 +15,7 @@ public class Tags {
     @Id
     private String id;
 
-    private long tag_id;
+    private long tagId;
     private String epcColorLED;
     private int baudrate;
     private String serialPort;
@@ -20,11 +24,12 @@ public class Tags {
     private String tid;
     private String user;
     private Boolean active;
+    private Date timestamp = new Date();
 
     public Tags() {}
     
     public Tags(String epcColorHex, int baudrate, String serialPort, String passcode,
-                String epc, String tid, String user, Boolean active) {
+                String epc, String tid, String user, Boolean active, Date timestamp) {
         this.epcColorLED = epcColorHex;
         this.baudrate = baudrate;
         this.serialPort = serialPort;
@@ -33,13 +38,19 @@ public class Tags {
         this.tid = tid;
         this.user = user;
         this.active = active;
+        this.timestamp = timestamp;
     }
+
 
     public String getId() { return id; }
 
-    public long getTag_id() { return tag_id; }
+    public long getTagId() { return tagId; }
 
-    public void setTag_id(long tag_id) { this.tag_id =  tag_id; }
+    public void setTagId(long tagId) { this.tagId =  tagId; }
+
+    public Date getTimestamp() { return timestamp; }
+
+    public void setTimestamp(Date timestamp) { this.timestamp =  timestamp; }
       
     public void setEpcColorLED(String epcColorLED) { this.epcColorLED =  epcColorLED;}
 

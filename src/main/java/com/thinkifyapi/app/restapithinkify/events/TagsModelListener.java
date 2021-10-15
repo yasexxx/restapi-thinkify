@@ -14,14 +14,14 @@ public class TagsModelListener extends AbstractMongoEventListener<Tags>{
     private SequenceGeneratorService sequenceGenerator;
 
     @Autowired
-    public void UserModelListener(SequenceGeneratorService sequenceGenerator) {
+    public void TagModelListener(SequenceGeneratorService sequenceGenerator) {
         this.sequenceGenerator = sequenceGenerator;
     }
 
     @Override
     public void onBeforeConvert(BeforeConvertEvent<Tags> event) {
-        if (event.getSource().getTag_id() < 1) {
-            event.getSource().setTag_id(sequenceGenerator.generateSequence(Tags.SEQUENCE_NAME));
+        if (event.getSource().getTagId() < 1) {
+            event.getSource().setTagId(sequenceGenerator.generateSequence(Tags.SEQUENCE_NAME));
         }
     }
 }

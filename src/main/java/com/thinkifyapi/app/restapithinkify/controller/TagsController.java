@@ -1,12 +1,15 @@
 package com.thinkifyapi.app.restapithinkify.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
 import com.thinkifyapi.app.restapithinkify.models.Tags;
 import com.thinkifyapi.app.restapithinkify.repository.TagsRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +24,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
 @CrossOrigin(origins = "http://localhost:8081")
-@RestController
+@RestController("TagsController")
+@Slf4j
 @RequestMapping("/api")
 public class TagsController {
 
@@ -48,21 +54,49 @@ public class TagsController {
     }
     
     @GetMapping("/tags/{id}")
-    public ResponseEntity<Tags> getTagsById(@PathVariable("id") String id){
-        Optional<Tags> tagsData = tagsRepository.findById(id);
-
-        if (tagsData.isPresent()) {
-          return new ResponseEntity<>(tagsData.get(), HttpStatus.OK);
-        } else {
-          return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<HashMap<String, Object>> getTagsById(@PathVariable("id") String id){
+      try {
+        List<Tags> tagList = new ArrayList<Tags>();
+        Long newId = Long.parseLong(id);
+        tagsRepository.findByTagId(newId).forEach(tagList::add);
+        if (tagList.isEmpty()) {
+          return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        HashMap<String, Object> result = new HashMap<String, Object>();
+        result.put("results", tagList);
+        result.put("count", tagList.size());
+        result.put("query", id);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+      } catch(Exception e){
+        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+
+    @GetMapping("/tags/last")
+    public ResponseEntity<HashMap<String, Object>> getLastCreatedTag(){
+      try {
+        List<Tags> tagList = new ArrayList<Tags>();
+        Tags newTag = tagsRepository.findTopByOrderByTimestampDesc();
+        if (newTag == null) {
+          return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        tagList.add(newTag);
+        HashMap<String, Object> result = new HashMap<String, Object>();
+        result.put("results", newTag);
+        result.put("count", tagList.size());
+        result.put("query", null);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+      } catch(Exception e){
+        System.err.println(e);
+        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
 
     @PostMapping("/tags")
     public ResponseEntity<Tags> createTags(@RequestBody Tags tag){
         try {
             Tags _tags = tagsRepository.save(new Tags(tag.getEpcColorLED(), tag.getBaudrate(),
-                tag.getSerialPort(), tag.getPasscode(), tag.getEpc(), tag.getTid(), tag.getUser(), false));
+                tag.getSerialPort(), tag.getPasscode(), tag.getEpc(), tag.getTid(), tag.getUser(), false, tag.getTimestamp()));
             return new ResponseEntity<>(_tags, HttpStatus.CREATED);
           } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -110,18 +144,18 @@ public class TagsController {
     }
 
     @GetMapping("/tags/active")
-  public ResponseEntity<List<Tags>> findByActive() {
-    try {
-        List<Tags> tags = tagsRepository.findByActive(true);
-    
-        if (tags.isEmpty()) {
-          return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<List<Tags>> findByActive() {
+      try {
+          List<Tags> tags = tagsRepository.findByActive(true);
+      
+          if (tags.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+          }
+          return new ResponseEntity<>(tags, HttpStatus.OK);
+        } catch (Exception e) {
+          return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(tags, HttpStatus.OK);
-      } catch (Exception e) {
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-  }
+    }
 
     
 }
